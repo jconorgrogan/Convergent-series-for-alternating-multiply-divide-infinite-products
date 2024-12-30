@@ -1,4 +1,4 @@
-# Convergent-series-for-alternating-multiply-divide-infinite-products
+# Interesting alternating prime series 
 
 Was playing around with primes and stumbled upon this fusion of alternating series, which seems to have interesting convergence behavior.
 
