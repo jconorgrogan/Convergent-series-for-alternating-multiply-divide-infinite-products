@@ -3,9 +3,11 @@
 Was playing around with primes and stumbled upon this fusion of alternating series, which seems to have interesting convergence behavior- and for s=1 as well!
 
 <img width="503" alt="image" src="https://github.com/user-attachments/assets/10df00a2-df02-465f-94ee-43082e48392a" />
-For s=1 for first 1000000 primes at s = 1.0 => 2.6684697357517617
-For s=2
 
+
+For s=1 for first 1000000 primes at s = 1.0 => 2.6684697357517617
+For s=2 for first 1000000 primes at s = 2.0 => 1.4636107695686014
+ 
 # Alternating Prime Euler Products
 
 This document introduces **alternating (multiply–divide) infinite products** formed from the Euler factors of the Riemann zeta function. We describe:
