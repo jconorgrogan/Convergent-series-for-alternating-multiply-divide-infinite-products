@@ -7,6 +7,7 @@ Was playing around with primes and stumbled upon this fusion of alternating seri
 
 For s=1 for first 1000000 primes at s = 1.0 => 2.6684697357517617
 For s=2 for first 1000000 primes at s = 2.0 => 1.4636107695686014
+For s=0.5 for first 1000000 primes => 6.009793933848154 
  
 # Alternating Prime Euler Products
 
