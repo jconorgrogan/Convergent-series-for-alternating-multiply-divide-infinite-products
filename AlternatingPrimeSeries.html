@@ -1,0 +1,265 @@
+import React, { useState, useEffect } from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Info } from "lucide-react";
+
+function isPrime(num) {
+  if (num < 2) return false;
+  if (num === 2 || num === 3) return true;
+  if (num % 2 === 0 || num % 3 === 0) return false;
+  const limit = Math.floor(Math.sqrt(num)) + 1;
+  for (let i = 5; i < limit; i += 6) {
+    if (num % i === 0 || num % (i + 2) === 0) return false;
+  }
+  return true;
+}
+
+function getFirstNPrimes(n) {
+  const primes = [];
+  let candidate = 2;
+  while (primes.length < n) {
+    if (isPrime(candidate)) {
+      primes.push(candidate);
+    }
+    candidate++;
+  }
+  return primes;
+}
+
+function reciprocalPrimeFactor(p, s) {
+  // F(p,s) = p^s/(p^s - 1) = (1 - 1/p^s)^(-1)
+  const pPowS = Math.pow(p, s);
+  return pPowS / (pPowS - 1.0);
+}
+
+function calculateAlternatingProduct(n, s) {
+  const primes = getFirstNPrimes(n);
+  let result = 1.0;
+  const steps = [];
+
+  primes.forEach((p, idx) => {
+    const i = idx + 1;
+    const factor = reciprocalPrimeFactor(p, s);
+    let op;
+
+    if (i === 1 || i === 2) {
+      result *= factor;
+      op = '*';
+    } else {
+      if (i % 2 === 1) {
+        result /= factor;
+        op = '/';
+      } else {
+        result *= factor;
+        op = '*';
+      }
+    }
+
+    steps.push({
+      step: i,
+      prime: p,
+      factor,
+      operation: op,
+      result
+    });
+  });
+
+  return steps;
+}
+
+const formatNumber = (num) => {
+  if (num === undefined || num === null || isNaN(num)) return 'N/A';
+  if (num === 0) return '0';
+  const absNum = Math.abs(num);
+  if (absNum < 0.001 || absNum > 1000) {
+    return num.toPrecision(6).replace(/\.?0+$/, '').replace(/\.?0+e/, 'e');
+  }
+  return num.toFixed(6).replace(/\.?0+$/, '');
+};
+
+const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#ff0000'];
+
+const AlternatingPrimeProductExplorer = () => {
+  const [numPrimes, setNumPrimes] = useState(20);
+  const [selectedSValues, setSelectedSValues] = useState([1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]);
+  const [results, setResults] = useState([]);
+
+  const calculateResults = () => {
+    const primes = getFirstNPrimes(numPrimes);
+    const allResults = primes.map((p, primeIndex) => {
+      const dataPoint = {
+        step: primeIndex + 1,
+        prime: p
+      };
+      
+      selectedSValues.forEach((s) => {
+        try {
+          const calcUpToHere = calculateAlternatingProduct(primeIndex + 1, s);
+          if (calcUpToHere && calcUpToHere.length > 0) {
+            const result = calcUpToHere[calcUpToHere.length - 1].result;
+            dataPoint[`s${s}`] = isFinite(result) ? result : null;
+          } else {
+            dataPoint[`s${s}`] = null;
+          }
+        } catch (error) {
+          console.error('Calculation error:', error);
+          dataPoint[`s${s}`] = null;
+        }
+      });
+      
+      return dataPoint;
+    });
+
+    setResults(allResults);
+  };
+
+  useEffect(() => {
+    calculateResults();
+  }, [numPrimes, selectedSValues]);
+
+  const toggleSValue = (s) => {
+    if (selectedSValues.includes(s)) {
+      setSelectedSValues(selectedSValues.filter(val => val !== s));
+    } else {
+      if (selectedSValues.length < 5) {
+        setSelectedSValues([...selectedSValues, s].sort((a, b) => a - b));
+      }
+    }
+  };
+
+  return (
+    <div className="w-full max-w-6xl mx-auto p-4 space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold">
+            Alternating Prime Product Explorer
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              Visualizing F₁ × F₂ ÷ F₃ × F₄ ÷ F₅ × F₆... where Fₙ = pₙˢ/(pₙˢ - 1) is the reciprocal prime factor for the nth prime.
+              We multiply the first two factors, then alternate between division and multiplication for subsequent terms.
+            </AlertDescription>
+          </Alert>
+
+          <div className="mt-6 space-y-4">
+            <div className="flex flex-col space-y-2">
+              <label className="text-sm font-medium">
+                Number of Primes (n): {numPrimes}
+              </label>
+              <input
+                type="range"
+                min="3"
+                max="30"
+                value={numPrimes}
+                onChange={(e) => setNumPrimes(parseInt(e.target.value))}
+                className="w-full"
+              />
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {[1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5].map((s) => (
+                <button
+                  key={s}
+                  onClick={() => toggleSValue(s)}
+                  className={`px-3 py-1 rounded ${
+                    selectedSValues.includes(s)
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-200 text-gray-700'
+                  }`}
+                >
+                  s = {s}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-6 h-96">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={results}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="prime"
+                  label={{ value: 'Prime Numbers (p)', position: 'bottom' }}
+                  ticks={results.reduce((acc, point, idx) => {
+                    if (idx === results.length - 1 || 
+                        idx === 9 || idx === 99 || idx === 999) {
+                      acc.push(point.prime);
+                    }
+                    return acc;
+                  }, [])}
+                  tickFormatter={(value) => {
+                    const idx = results.findIndex(r => r.prime === value);
+                    if (idx === 9) return `10th (${value})`;
+                    if (idx === 99) return `100th (${value})`;
+                    if (idx === 999) return `1000th (${value})`;
+                    if (idx === results.length - 1) return `${idx + 1}th (${value})`;
+                    return value;
+                  }}
+                />
+                <YAxis 
+                  label={{ 
+                    value: 'Alternating Product Value', 
+                    angle: -90, 
+                    position: 'left' 
+                  }} 
+                />
+                <Tooltip 
+                  formatter={(value, name) => [
+                    value !== null && value !== undefined ? formatNumber(value) : 'N/A',
+                    `s = ${name.substring(1)}`
+                  ]}
+                />
+                <Legend 
+                  formatter={(value) => `s = ${value.substring(1)}`}
+                />
+                {selectedSValues.map((s, index) => (
+                  <Line
+                    key={s}
+                    type="monotone"
+                    dataKey={`s${s}`}
+                    name={`s${s}`}
+                    stroke={COLORS[index % COLORS.length]}
+                    dot={false}
+                  />
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="mt-6 overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr>
+                  <th className="px-4 py-2 text-left">Prime</th>
+                  {selectedSValues.map(s => (
+                    <th key={s} className="px-4 py-2 text-left">
+                      s = {s}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {results.map((row) => (
+                  <tr key={row.step}>
+                    <td className="px-4 py-2">{row.prime}</td>
+                    {selectedSValues.map(s => (
+                      <td key={s} className="px-4 py-2">
+                        {formatNumber(row[`s${s}`])}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default AlternatingPrimeProductExplorer;
