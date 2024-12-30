@@ -1,6 +1,6 @@
 # Interesting alternating prime series 
 
-Was playing around with primes and stumbled upon this fusion of alternating series, which seems to have interesting convergence behavior.
+Was playing around with primes and stumbled upon this fusion of alternating series, which seems to have interesting convergence behavior- and for s=1 as well!
 
 # Alternating Prime Euler Products
 
